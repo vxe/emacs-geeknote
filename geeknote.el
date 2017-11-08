@@ -122,7 +122,7 @@ TITLE the title of the new note to be created."
   (let ((note-title (geeknote--parse-title title))
 	(note-notebook (geeknote-helm-search-notebooks))
 	(note-tag (if (string= "" tag)
-		      "inbox"
+		      geeknote-default-tag
 		    tag)))
     (async-shell-command
      (format (concat geeknote-command " create --content WRITE --title %s "
@@ -132,7 +132,7 @@ TITLE the title of the new note to be created."
 		     )
 	     (shell-quote-argument note-title)
 	     (shell-quote-argument (or note-notebook ""))
-	     (shell-quote-argument note-tag)
+	     note-tag
 	     
 	     )
      (concat "*Geeknote* - creating note in - " note-notebook))))
