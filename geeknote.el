@@ -787,3 +787,6 @@ TITLE the title of the new note to be created."
 			    str))
 
 (geeknote-gen-notebook-tag-cache)
+
+(provide 'geeknote)
+    ;;; geeknote.el ends here
