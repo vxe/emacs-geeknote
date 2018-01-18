@@ -1,6 +1,3 @@
-(provide 'geeknote)
-    ;;; geeknote.el ends here
-
 ;;; geeknote.el --- Use Evernote in Emacs through geeknote
 
 ;; Copyright (C) 2015 Evan Dale Aromin
@@ -787,3 +784,6 @@ TITLE the title of the new note to be created."
 			    str))
 
 (geeknote-gen-notebook-tag-cache)
+
+(provide 'geeknote)
+    ;;; geeknote.el ends here
