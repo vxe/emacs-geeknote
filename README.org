@@ -2,6 +2,7 @@
 #+TITLE: geeknote.el
 #+STARTUP: indent
 #+OPTIONS: toc:nil
+
 Some additions to the [[https://github.com/avendael/emacs-geeknote][to the excellent original by avendael]]
 ** Overview :TOC:
 - [[#installation][Installation]]

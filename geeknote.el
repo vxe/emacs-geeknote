@@ -1,3 +1,6 @@
+(provide 'geeknote)
+    ;;; geeknote.el ends here
+
 ;;; geeknote.el --- Use Evernote in Emacs through geeknote
 
 ;; Copyright (C) 2015 Evan Dale Aromin
