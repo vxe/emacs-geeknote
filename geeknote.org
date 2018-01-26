@@ -13,6 +13,7 @@ procedures, data, macros
   - [[#insert-an-email-notebook-from-a-helm-prompt-of-available-notebooks][insert an email notebook from a helm prompt of available notebooks]]
   - [[#build-a-cache-of-the-current-set-of-tags-and-notebooks][build a cache of the current set of tags and notebooks]]
   - [[#major-mode-definition][major mode definition]]
+  - [[#create-a-new-tag][create a new tag]]
   - [[#core-api][core api]]
   - [[#initialize-caches][initialize caches]]
   - [[#package-footer][package footer]]
@@ -216,6 +217,13 @@ procedures, data, macros
      (provide 'geeknote-mode)
 
    #+END_SRC
+** create a new tag
+#+BEGIN_SRC elisp :tangle geeknote.el
+  (defun geeknote-create-tag (tag-name)
+    (interactive "stag name: ")
+    (async-shell-command (concat "geeknote tag-create --title " tag-name)
+                         (concat "*Geeknote* - creating tag: " tag-name)))
+#+END_SRC
 ** core api
    #+BEGIN_SRC elisp :tangle geeknote.el
     ;;;###autoload
@@ -279,7 +287,7 @@ TITLE the title of the new note to be created."
 	     )
      (concat "*Geeknote* - creating note in - " note-notebook))))
 
-(defun geeknote-create-tag (title)
+(defun geeknote-create-with-tag (title)
   "Create a new note with the given title.
 
 TITLE the title of the new note to be created."
