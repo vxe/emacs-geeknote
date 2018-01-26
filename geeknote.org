@@ -164,14 +164,16 @@ procedures, data, macros
 
  #+END_SRC
 ** insert an email tag from a helm prompt of available tags
-   additionally rebuild the notebook cache in the even that a new notebook is created
+   additionally rebuild the notebook cache in the even that a new tag is created
    #+BEGIN_SRC elisp :tangle geeknote.el
      (defun geeknote-email-tag-insert ()
        (interactive)
        (let ((tag (completing-read "tag: " geeknote-tags) ))
-	 (insert (concat "#") tag))
+         (cond ((not (member tag geeknote-tags))
+                (geeknote-create-tag tag)
+                (insert (concat "#") tag))
+               (t (insert (concat "#") tag))))
        (geeknote-gen-notebook-tag-cache))
-
    #+END_SRC
 ** insert an email notebook from a helm prompt of available notebooks
    additionally rebuild the tag cache in the even that a new tag is added
