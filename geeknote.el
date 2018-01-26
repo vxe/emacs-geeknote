@@ -1,6 +1,3 @@
-(provide 'geeknote)
-    ;;; geeknote.el ends here
-
 ;;; geeknote.el --- Use Evernote in Emacs through geeknote
 
 ;; Copyright (C) 2015 Evan Dale Aromin
@@ -175,6 +172,11 @@
 
 (provide 'geeknote-mode)
 
+(defun geeknote-create-tag (tag-name)
+  (interactive "stag name: ")
+  (async-shell-command (concat "geeknote tag-create --title " tag-name)
+                       (concat "*Geeknote* - creating tag: " tag-name)))
+
 ;;;###autoload
 (defun geeknote-setup ()
   "Setup geeknote."
@@ -236,7 +238,7 @@ TITLE the title of the new note to be created."
 	     )
      (concat "*Geeknote* - creating note in - " note-notebook))))
 
-(defun geeknote-create-tag (title)
+(defun geeknote-create-with-tag (title)
   "Create a new note with the given title.
 
 TITLE the title of the new note to be created."
