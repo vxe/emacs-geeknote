@@ -133,7 +133,10 @@
 (defun geeknote-email-tag-insert ()
   (interactive)
   (let ((tag (completing-read "tag: " geeknote-tags) ))
-    (insert (concat "#") tag))
+    (cond ((not (member tag geeknote-tags))
+           (geeknote-create-tag tag)
+           (insert (concat "#") tag))
+          (t (insert (concat "#") tag))))
   (geeknote-gen-notebook-tag-cache))
 
 (defun geeknote-email-notebook-insert ()
