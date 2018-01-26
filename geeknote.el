@@ -1,6 +1,3 @@
-(provide 'geeknote)
-    ;;; geeknote.el ends here
-
 ;;; geeknote.el --- Use Evernote in Emacs through geeknote
 
 ;; Copyright (C) 2015 Evan Dale Aromin
@@ -136,7 +133,10 @@
 (defun geeknote-email-tag-insert ()
   (interactive)
   (let ((tag (completing-read "tag: " geeknote-tags) ))
-    (insert (concat "#") tag))
+    (cond ((not (member tag geeknote-tags))
+           (geeknote-create-tag tag)
+           (insert (concat "#") tag))
+          (t (insert (concat "#") tag))))
   (geeknote-gen-notebook-tag-cache))
 
 (defun geeknote-email-notebook-insert ()
@@ -175,6 +175,11 @@
 
 (provide 'geeknote-mode)
 
+(defun geeknote-create-tag (tag-name)
+  (interactive "stag name: ")
+  (async-shell-command (concat "geeknote tag-create --title " tag-name)
+                       (concat "*Geeknote* - creating tag: " tag-name)))
+
 ;;;###autoload
 (defun geeknote-setup ()
   "Setup geeknote."
@@ -184,33 +189,54 @@
 		    (concat geeknote-command
 			    " settings --editor emacsclient")))))
 
-
-   
-    ;;;###autoload
-(defun geeknote-create (title &optional tag)
+;;;###autoload
+(defun geeknote-quick-create (title &optional tag)
   "Create a new note with the given title.
 
 TITLE the title of the new note to be created."
   (interactive "sTitle: \nsTag:")
   (message (format "geeknote creating note: %s" title))
   (let ((note-title (geeknote--parse-title title))
-	(note-notebook (geeknote-helm-search-notebooks-cached))
-	(note-tag (if (string= "" tag)
-		      geeknote-default-tag
-		    tag)))
+        (note-notebook (geeknote-helm-search-notebooks-cached))
+        (note-tag (if (string= "" tag)
+                      geeknote-default-tag
+                    tag)))
     (async-shell-command
      (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s")
-		     (cond ((not (string= "" note-tag))
-			    " --tag %s"))
-		     )
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))
-	     note-tag
-	     
-	     )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
+                     (when note-notebook " --notebook %s")
+                     (cond ((not (string= "" note-tag))
+                            " --tag %s"))
+                     )
+             (shell-quote-argument note-title)
+             (shell-quote-argument (or note-notebook ""))
+             note-tag
 
+             )
+     (concat "*Geeknote* - creating note in - " note-notebook)))
+  (geeknote-gen-notebook-tag-cache))
+
+;;;###autoload
+(defun geeknote-create (title)
+  "Create a new note with the given title.
+
+TITLE the title of the new note to be created."
+  (interactive "sTitle: ")
+  (message (format "geeknote creating note: %s" title))
+  (let ((note-title (geeknote--parse-title title))
+        (note-notebook (geeknote-helm-search-notebooks-cached))
+        (note-tag  (geeknote-helm-search-tags-cached)))
+    (async-shell-command
+     (format (concat geeknote-command " create --content WRITE --title %s "
+                     (when note-notebook " --notebook %s")
+                     (cond ((not (string= "" note-tag))
+                            " --tag %s"))
+                     )
+             (shell-quote-argument note-title)
+             (shell-quote-argument (or note-notebook ""))
+             note-tag
+
+             )
+     (concat "*Geeknote* - creating note in - " note-notebook))))
 
 (defun geeknote-create-orig (title &optional tag)
   "Create a new note with the given title.
@@ -236,7 +262,7 @@ TITLE the title of the new note to be created."
 	     )
      (concat "*Geeknote* - creating note in - " note-notebook))))
 
-(defun geeknote-create-tag (title)
+(defun geeknote-create-with-tag (title)
   "Create a new note with the given title.
 
 TITLE the title of the new note to be created."
@@ -522,9 +548,7 @@ TITLE the title of the new note to be created."
 	      " find --search %s --count 20 --content-search --notebook %s")
       (shell-quote-argument keyword)
       (shell-quote-argument notebook))
-     keyword)
-    
-    ))
+     keyword)))
 
 
 

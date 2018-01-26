@@ -13,7 +13,12 @@ procedures, data, macros
   - [[#insert-an-email-notebook-from-a-helm-prompt-of-available-notebooks][insert an email notebook from a helm prompt of available notebooks]]
   - [[#build-a-cache-of-the-current-set-of-tags-and-notebooks][build a cache of the current set of tags and notebooks]]
   - [[#major-mode-definition][major mode definition]]
+  - [[#create-a-new-tag][create a new tag]]
   - [[#core-api][core api]]
+    - [[#setup-emacsclient][setup emacsclient]]
+    - [[#create-without-tag-lookup][create without tag lookup]]
+    - [[#create-new-note][create new note]]
+    - [[#rest][rest]]
   - [[#initialize-caches][initialize caches]]
   - [[#package-footer][package footer]]
 - [[#abstractions][Abstractions]]
@@ -163,14 +168,16 @@ procedures, data, macros
 
  #+END_SRC
 ** insert an email tag from a helm prompt of available tags
-   additionally rebuild the notebook cache in the even that a new notebook is created
+   additionally rebuild the notebook cache in the even that a new tag is created
    #+BEGIN_SRC elisp :tangle geeknote.el
      (defun geeknote-email-tag-insert ()
        (interactive)
        (let ((tag (completing-read "tag: " geeknote-tags) ))
-	 (insert (concat "#") tag))
+         (cond ((not (member tag geeknote-tags))
+                (geeknote-create-tag tag)
+                (insert (concat "#") tag))
+               (t (insert (concat "#") tag))))
        (geeknote-gen-notebook-tag-cache))
-
    #+END_SRC
 ** insert an email notebook from a helm prompt of available notebooks
    additionally rebuild the tag cache in the even that a new tag is added
@@ -216,7 +223,15 @@ procedures, data, macros
      (provide 'geeknote-mode)
 
    #+END_SRC
+** create a new tag
+#+BEGIN_SRC elisp :tangle geeknote.el
+  (defun geeknote-create-tag (tag-name)
+    (interactive "stag name: ")
+    (async-shell-command (concat "geeknote tag-create --title " tag-name)
+                         (concat "*Geeknote* - creating tag: " tag-name)))
+#+END_SRC
 ** core api
+*** setup emacsclient
    #+BEGIN_SRC elisp :tangle geeknote.el
     ;;;###autoload
 (defun geeknote-setup ()
@@ -227,34 +242,63 @@ procedures, data, macros
 		    (concat geeknote-command
 			    " settings --editor emacsclient")))))
 
+   #+END_SRC
+*** create without tag lookup
+      #+BEGIN_SRC elisp :tangle geeknote.el
+            ;;;###autoload
+        (defun geeknote-quick-create (title &optional tag)
+          "Create a new note with the given title.
 
-   
-    ;;;###autoload
-(defun geeknote-create (title &optional tag)
-  "Create a new note with the given title.
-
-TITLE the title of the new note to be created."
-  (interactive "sTitle: \nsTag:")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(note-notebook (geeknote-helm-search-notebooks-cached))
-	(note-tag (if (string= "" tag)
-		      geeknote-default-tag
-		    tag)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s")
-		     (cond ((not (string= "" note-tag))
-			    " --tag %s"))
-		     )
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))
-	     note-tag
+        TITLE the title of the new note to be created."
+          (interactive "sTitle: \nsTag:")
+          (message (format "geeknote creating note: %s" title))
+          (let ((note-title (geeknote--parse-title title))
+                (note-notebook (geeknote-helm-search-notebooks-cached))
+                (note-tag (if (string= "" tag)
+                              geeknote-default-tag
+                            tag)))
+            (async-shell-command
+             (format (concat geeknote-command " create --content WRITE --title %s "
+                             (when note-notebook " --notebook %s")
+                             (cond ((not (string= "" note-tag))
+                                    " --tag %s"))
+                             )
+                     (shell-quote-argument note-title)
+                     (shell-quote-argument (or note-notebook ""))
+                     note-tag
 	     
-	     )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
+                     )
+             (concat "*Geeknote* - creating note in - " note-notebook)))
+          (geeknote-gen-notebook-tag-cache))
+   #+END_SRC
+*** create new note 
+#+BEGIN_SRC elisp :tangle geeknote.el
+      ;;;###autoload
+  (defun geeknote-create (title)
+    "Create a new note with the given title.
 
+  TITLE the title of the new note to be created."
+    (interactive "sTitle: ")
+    (message (format "geeknote creating note: %s" title))
+    (let ((note-title (geeknote--parse-title title))
+          (note-notebook (geeknote-helm-search-notebooks-cached))
+          (note-tag  (geeknote-helm-search-tags-cached)))
+      (async-shell-command
+       (format (concat geeknote-command " create --content WRITE --title %s "
+                       (when note-notebook " --notebook %s")
+                       (cond ((not (string= "" note-tag))
+                              " --tag %s"))
+                       )
+               (shell-quote-argument note-title)
+               (shell-quote-argument (or note-notebook ""))
+               note-tag
 
+               )
+       (concat "*Geeknote* - creating note in - " note-notebook))))
+
+#+END_SRC
+*** rest
+   #+BEGIN_SRC elisp :tangle geeknote.el
 (defun geeknote-create-orig (title &optional tag)
   "Create a new note with the given title.
 
@@ -279,7 +323,7 @@ TITLE the title of the new note to be created."
 	     )
      (concat "*Geeknote* - creating note in - " note-notebook))))
 
-(defun geeknote-create-tag (title)
+(defun geeknote-create-with-tag (title)
   "Create a new note with the given title.
 
 TITLE the title of the new note to be created."
@@ -565,9 +609,7 @@ TITLE the title of the new note to be created."
 	      " find --search %s --count 20 --content-search --notebook %s")
       (shell-quote-argument keyword)
       (shell-quote-argument notebook))
-     keyword)
-    
-    ))
+     keyword)))
 
 
 
