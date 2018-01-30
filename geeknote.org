@@ -294,7 +294,8 @@ procedures, data, macros
                note-tag
 
                )
-       (concat "*Geeknote* - creating note in - " note-notebook))))
+       (concat "*Geeknote* - creating note in - " note-notebook)))
+    (geeknote-gen-notebook-tag-cache))
 
 #+END_SRC
 *** rest
@@ -590,9 +591,7 @@ TITLE the title of the new note to be created."
 	      (concat " find --search %s --count " num-results  " --content-search --notebook %s"))
       (shell-quote-argument keyword)
       (shell-quote-argument notebook))
-     keyword)
-    
-    ))
+     keyword)))
 
 
 
