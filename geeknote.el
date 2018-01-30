@@ -189,33 +189,54 @@
 		    (concat geeknote-command
 			    " settings --editor emacsclient")))))
 
-
-   
-    ;;;###autoload
-(defun geeknote-create (title &optional tag)
+;;;###autoload
+(defun geeknote-quick-create (title &optional tag)
   "Create a new note with the given title.
 
 TITLE the title of the new note to be created."
   (interactive "sTitle: \nsTag:")
   (message (format "geeknote creating note: %s" title))
   (let ((note-title (geeknote--parse-title title))
-	(note-notebook (geeknote-helm-search-notebooks-cached))
-	(note-tag (if (string= "" tag)
-		      geeknote-default-tag
-		    tag)))
+        (note-notebook (geeknote-helm-search-notebooks-cached))
+        (note-tag (if (string= "" tag)
+                      geeknote-default-tag
+                    tag)))
     (async-shell-command
      (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s")
-		     (cond ((not (string= "" note-tag))
-			    " --tag %s"))
-		     )
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))
-	     note-tag
-	     
-	     )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
+                     (when note-notebook " --notebook %s")
+                     (cond ((not (string= "" note-tag))
+                            " --tag %s"))
+                     )
+             (shell-quote-argument note-title)
+             (shell-quote-argument (or note-notebook ""))
+             note-tag
 
+             )
+     (concat "*Geeknote* - creating note in - " note-notebook)))
+  (geeknote-gen-notebook-tag-cache))
+
+;;;###autoload
+(defun geeknote-create (title)
+  "Create a new note with the given title.
+
+TITLE the title of the new note to be created."
+  (interactive "sTitle: ")
+  (message (format "geeknote creating note: %s" title))
+  (let ((note-title (geeknote--parse-title title))
+        (note-notebook (geeknote-helm-search-notebooks-cached))
+        (note-tag  (geeknote-helm-search-tags-cached)))
+    (async-shell-command
+     (format (concat geeknote-command " create --content WRITE --title %s "
+                     (when note-notebook " --notebook %s")
+                     (cond ((not (string= "" note-tag))
+                            " --tag %s"))
+                     )
+             (shell-quote-argument note-title)
+             (shell-quote-argument (or note-notebook ""))
+             note-tag
+
+             )
+     (concat "*Geeknote* - creating note in - " note-notebook))))
 
 (defun geeknote-create-orig (title &optional tag)
   "Create a new note with the given title.
@@ -527,9 +548,7 @@ TITLE the title of the new note to be created."
 	      " find --search %s --count 20 --content-search --notebook %s")
       (shell-quote-argument keyword)
       (shell-quote-argument notebook))
-     keyword)
-    
-    ))
+     keyword)))
 
 
 
