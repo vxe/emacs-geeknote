@@ -236,6 +236,7 @@ TITLE the title of the new note to be created."
              note-tag
 
              )
+
      (concat "*Geeknote* - creating note in - " note-notebook)))
   (geeknote-gen-notebook-tag-cache))
 

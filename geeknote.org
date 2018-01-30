@@ -294,6 +294,7 @@ procedures, data, macros
                note-tag
 
                )
+
        (concat "*Geeknote* - creating note in - " note-notebook)))
     (geeknote-gen-notebook-tag-cache))
 
