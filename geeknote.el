@@ -236,7 +236,9 @@ TITLE the title of the new note to be created."
              note-tag
 
              )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
+
+     (concat "*Geeknote* - creating note in - " note-notebook)))
+  (geeknote-gen-notebook-tag-cache))
 
 (defun geeknote-create-orig (title &optional tag)
   "Create a new note with the given title.
@@ -529,9 +531,7 @@ TITLE the title of the new note to be created."
 	      (concat " find --search %s --count " num-results  " --content-search --notebook %s"))
       (shell-quote-argument keyword)
       (shell-quote-argument notebook))
-     keyword)
-    
-    ))
+     keyword)))
 
 
 
