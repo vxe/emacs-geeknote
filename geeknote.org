@@ -67,92 +67,92 @@ procedures, data, macros
 * Global Data
 #+BEGIN_SRC elisp :tangle geeknote.el
 
-    ;;; Code:
-(defgroup geeknote nil
-  "Interact with evernote through emacs."
-  :group 'tools
-  :group 'convenience)
+      ;;; Code:
+  (defgroup geeknote nil
+    "Interact with evernote through emacs."
+    :group 'tools
+    :group 'convenience)
 
-(defcustom geeknote-command "geeknote"
-  "The geeknote command.
-    It's either a path to the geeknote script as an argument to python, or simply
-    `geeknote` if the command is already on your PATH."
-  :group 'geeknote
-  :type 'string)
-
-
-(defcustom geeknote-venv "geeknote"
-  "If venv is being used set the name of the virtualenv in which geeknote is installed"
-  :group 'geeknote
-  :type 'string)
-
-(defcustom geeknote-default-tag ""
-  "Set a default tag for notes created with `geeknote-create' "
-  :group 'geeknote
-  :type 'string)
-
-(defconst geeknote--expect-script
-  (concat "expect -c 'spawn "
-	  geeknote-command
-	  " %s; set pid $spawn_id; set timeout 1; set count 5; while { $count > 0 } { expect \"^\\-\\- More \\-\\-\"; if {[catch {send -i $pid \" \"} err]} { exit } else { set count [expr $count-1]} }'"))
-
-(defvar geeknote-mode-hook nil)
-
-(defvar geeknote-mode-map
-  (let ((map (make-keymap)))
-    (define-key map "q" 'kill-this-buffer)
-    (define-key map "j" 'next-line)
-    (define-key map "k" 'previous-line)
-    map)
-  "Keymap for Geeknote major mode")
-
-(regexp-opt '("Total found") t)
-
-(defconst geeknote-font-lock-keywords-1
-  (list
-   '("\\(Total found:\\)" . font-lock-constant-face))
-  "Minimal highlighting keywords for geeknote mode")
-
-(defconst geeknote-font-lock-keywords-2
-  (append geeknote-font-lock-keywords-1
-	  (list '("\\(^\s-+[0-9]+\\)" . font-lock-keyword-face)))
-  "Additional Keywords to highlight in geeknote mode")
-
-(defconst geeknote-font-lock-keywords-3
-  (append geeknote-font-lock-keywords-2
-	  (list '(" : \\(.+\\)$" . font-lock-builting-face)))
-  "Additional Keywords to highlight in geeknote mode")
-
-(defvar geeknote-font-lock-keywords geeknote-font-lock-keywords-3
-  "Default highlighting expressions for geeknote mode")
-
-    ;;;###autoload
-(defun geeknote--chomp (str)
-  "Chomp leading and tailing whitespace from STR."
-  (replace-regexp-in-string (rx (or (: bos (* (any " \t\n")))
-				    (: (* (any " \t\n")) eos)))
-			    ""
-			    str))
+  (defcustom geeknote-command "geeknote"
+    "The geeknote command.
+      It's either a path to the geeknote script as an argument to python, or simply
+      `geeknote` if the command is already on your PATH."
+    :group 'geeknote
+    :type 'string)
 
 
-(async-start
- (lambda ()
-   (split-string
-    (shell-command-to-string "~/.emacs.d/var/geeknote/bin/geeknote tag-list | awk '{print $3}'") "\n"))
- (lambda (result)
-   (progn (setq geeknote-tags result )
-	  (message "tag values set"))))
+  (defcustom geeknote-venv "geeknote"
+    "If venv is being used set the name of the virtualenv in which geeknote is installed"
+    :group 'geeknote
+    :type 'string)
+
+  (defcustom geeknote-default-tag ""
+    "Set a default tag for notes created with `geeknote-create' "
+    :group 'geeknote
+    :type 'string)
+
+  (defconst geeknote--expect-script
+    (concat "expect -c 'spawn "
+            geeknote-command
+            " %s; set pid $spawn_id; set timeout 1; set count 5; while { $count > 0 } { expect \"^\\-\\- More \\-\\-\"; if {[catch {send -i $pid \" \"} err]} { exit } else { set count [expr $count-1]} }'"))
+
+  (defvar geeknote-mode-hook nil)
+
+  (defvar geeknote-mode-map
+    (let ((map (make-keymap)))
+      (define-key map "q" 'kill-this-buffer)
+      (define-key map "j" 'next-line)
+      (define-key map "k" 'previous-line)
+      map)
+    "Keymap for Geeknote major mode")
+
+  (regexp-opt '("Total found") t)
+
+  (defconst geeknote-font-lock-keywords-1
+    (list
+     '("\\(Total found:\\)" . font-lock-constant-face))
+    "Minimal highlighting keywords for geeknote mode")
+
+  (defconst geeknote-font-lock-keywords-2
+    (append geeknote-font-lock-keywords-1
+            (list '("\\(^\s-+[0-9]+\\)" . font-lock-keyword-face)))
+    "Additional Keywords to highlight in geeknote mode")
+
+  (defconst geeknote-font-lock-keywords-3
+    (append geeknote-font-lock-keywords-2
+            (list '(" : \\(.+\\)$" . font-lock-builting-face)))
+    "Additional Keywords to highlight in geeknote mode")
+
+  (defvar geeknote-font-lock-keywords geeknote-font-lock-keywords-3
+    "Default highlighting expressions for geeknote mode")
+
+      ;;;###autoload
+  (defun geeknote--chomp (str)
+    "Chomp leading and tailing whitespace from STR."
+    (replace-regexp-in-string (rx (or (: bos (* (any " \t\n")))
+                                      (: (* (any " \t\n")) eos)))
+                              ""
+                              str))
+
+
+  (async-start
+   (lambda ()
+     (split-string
+      (shell-command-to-string "geeknote tag-list | awk '{print $3}'") "\n"))
+   (lambda (result)
+     (progn (setq geeknote-tags result )
+            (message "tag values set"))))
 
 
 
-(async-start
- (lambda ()
-   (setq geeknote-notebooks (split-string (shell-command-to-string
-					   "~/.emacs.d/var/geeknote/bin/geeknote notebook-list | perl -pe 's/^Found.*$//g' | perl -lane 'splice @F,0,2;print \"@F\"' | sed '/^$/d'")
-					  "\n")))
- (lambda (results)
-   (progn (setq geeknote-notebooks results)
-	  (message "geeknote-notebooks - configured"))))
+  (async-start
+   (lambda ()
+     (setq geeknote-notebooks (split-string (shell-command-to-string
+                                             "geeknote notebook-list | perl -pe 's/^Found.*$//g' | perl -lane 'splice @F,0,2;print \"@F\"' | sed '/^$/d'")
+                                            "\n")))
+   (lambda (results)
+     (progn (setq geeknote-notebooks results)
+            (message "geeknote-notebooks - configured"))))
 
 #+END_SRC
 * Procedures
@@ -301,575 +301,600 @@ procedures, data, macros
 #+END_SRC
 *** rest
    #+BEGIN_SRC elisp :tangle geeknote.el
-(defun geeknote-create-orig (title &optional tag)
-  "Create a new note with the given title.
-
-TITLE the title of the new note to be created."
-  (interactive "sTitle: \nsTag:")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(note-notebook (geeknote-helm-search-notebooks))
-	(note-tag (if (string= "" tag)
-		      geeknote-default-tag
-		    tag)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s")
-		     (cond ((not (string= "" note-tag))
-			    " --tag %s"))
-		     )
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))
-	     note-tag
-	     
-	     )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
-
-(defun geeknote-create-with-tag (title)
-  "Create a new note with the given title.
-
-TITLE the title of the new note to be created."
-  (interactive "sTitle: ")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(tag (completing-read "tag: " geeknote-tags))
-	(note-notebook (completing-read "notebook" geeknote-notebooks)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s")
-		     (cond ((not (string= "" tag))
-			    " --tag %s"))
-		     )
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))
-	     (shell-quote-argument tag)
-	     
-	     )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
-
-(defun geeknote-create-tag-refresh (title)
-  "Create a new note with the given title.
-
-TITLE the title of the new note to be created."
-  (interactive "sTitle: ")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(tag (completing-read "tag: " geeknote-tags))
-	(note-notebook (completing-read "notebook" geeknote-notebooks)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s")
-		     (cond ((not (string= "" tag))
-			    " --tag %s"))
-		     )
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))
-	     (shell-quote-argument tag)
-	     
-	     )
-     (concat "*Geeknote* - creating note in - " note-notebook))))
-
-
-
-    ;;;###autoload
-(defun geeknote-create-venv (title)
-  "Create a new note with the given title.
-
-    TITLE the title of the new note to be created."
-  (interactive "sTitle: ")
-  (message (format "geeknote creating note: %s" title))
-  (let ((current venv-current-name))
-    (venv-workon geeknote-venv)
-    
-    (let ((note-title (geeknote--parse-title title))
-	  (note-notebook (geeknote-helm-search-notebooks)))
-      (async-shell-command
-       (format (concat geeknote-command " create --content WRITE --title %s "
-		       (when note-notebook " --notebook %s"))
-	       (shell-quote-argument note-title)
-	       (shell-quote-argument (or note-notebook ""))))
-      (venv-workon current))))
-
-
-(defun geeknote-switch-virtualenv-and-create (title)
-  "Create a new note with the given title.
-
-    TITLE the title of the new note to be created."
-  (interactive "sTitle: ")
-  (venv-workon "geeknote")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(note-notebook (geeknote-helm-search-notebooks)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s"))
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-notebook ""))))))
-
-    ;;;###autoload
-(defun geeknote-create-notebook (title stack)
-  "Create a new note with the given title.
-
-    TITLE the title of the new note to be created."
-  (interactive "sName: \nsStack: ")
-  (message (format "geeknote creating notebook: %s" title))
-  (async-shell-command
-   (format (concat geeknote-command " notebook-create --title %s "
-		   (when stack " --stack %s"))
-	   (shell-quote-argument title)
-	   (shell-quote-argument stack))))
-
-(defun geeknote-create-no-helm (title)
-  "Create a new note with the given title.
-
-    TITLE the title of the new note to be created."
-  (interactive "sName: ")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(note-tags (geeknote--parse-tags title))
-	(note-notebook (geeknote--parse-notebook title)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s "
-		     (when note-notebook " --notebook %s"))
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-tags ""))
-	     (shell-quote-argument (or note-notebook ""))))))
-
-
-(defun geeknote-create-old (title)
-  "Create a new note with the given title.
-
-    TITLE the title of the new note to be created."
-  (interactive "sName: ")
-  (message (format "geeknote creating note: %s" title))
-  (let ((note-title (geeknote--parse-title title))
-	(note-tags (geeknote--parse-tags title))
-	(note-notebook (geeknote--parse-notebook title)))
-    (async-shell-command
-     (format (concat geeknote-command " create --content WRITE --title %s --tags %s"
-		     (when note-notebook " --notebook %s"))
-	     (shell-quote-argument note-title)
-	     (shell-quote-argument (or note-tags ""))
-	     (shell-quote-argument (or note-notebook ""))))))
-
-    ;;;###autoload
-(defun geeknote-show (title)
-  "Open an existing note.
-
-    TITLE the title of the note to show."
-  (interactive "sName: ")
-  (message (format "geeknote showing note: %s" title))
-  (let* ((note (shell-command-to-string
-		(format (concat geeknote-command " show %s")
-			(shell-quote-argument title))))
-	 (lines (split-string note "\n"))
-	 (name (cadr lines))
-	 (buf-name (format "*Geeknote: %s*" name)))
-    (with-current-buffer (get-buffer-create buf-name)
-      (display-buffer buf-name)      
-      (read-only-mode 0)
-      (erase-buffer)
-      (insert note)
-      (read-only-mode t)
-      (markdown-mode))
-    (other-window 1)))
-
-    ;;;###autoload
-(defun geeknote-edit (title)
-  "Open up an existing note for editing.
-
-    TITLE the title of the note to edit."
-  (interactive "sName: ")
-  (message (format "Editing note: %s" title))
-  (async-shell-command
-   (format (concat geeknote-command " edit --note %s")
-	   (shell-quote-argument title))))
-
-    ;;;###autoload
-(defun geeknote-remove (title)
-  "Delete an existing note.
-
-    TITLE the title of the note to delete."
-  (interactive "sName: ")
-  (message (format "geeknote deleting note: %s" title))
-  (message (concat "geeknote: "
-		   (shell-command-to-string
-		    (format (concat geeknote-command
-				    " remove --note %s --force")
-			    (shell-quote-argument title))))))
-
-    ;;;###autoload
-(defun geeknote-find (keyword)
-  "Search for a note with the given keyword.
-
-    KEYWORD the keyword to search the notes with."
-  (interactive "skeyword: ")
-  (geeknote--find-with-args
-   (format 
-    (concat geeknote-command
-	    " find --search %s --count 20 --content-search")
-    (shell-quote-argument keyword))
-   keyword))
-
-    ;;;###autoload
-(defun geeknote-helm-search-notebooks-cached ()
-  "Generate a helm list of notebooks, and return the selected one"
-  (interactive)
-  (let ((notebook (completing-read "notebook" geeknote-notebooks)))
-    notebook))
-
-
-    ;;;###autoload
-(defun geeknote-helm-search-notebooks ()
-  "Generate a helm list of notebooks, and return the selected one"
-  (interactive)
-  (let ((notebook (completing-read "notebook"
-				   (split-string
-				    (geeknote--chomp
-				     (shell-command-to-string
-				      "geeknote notebook-list | perl -pe 's/^Found.*$//g' | perl -lane 'splice @F,0,2;print \"@F\"' | sed '/^$/d'"))
-				    "\n"))))
-	
-    notebook))
-
-(defun geeknote-helm-search-tags ()
-  "Generate a helm list of notebooks, and return the selected one"
-  (interactive)
-  (let ((tag (completing-read "tag: "
-			      (split-string
-			       (geeknote--chomp
-				(shell-command-to-string
-				 "geeknote tag-list | awk '{print $3}'"))
-			       "\n"))))
-	
-    tag))
-
-
-(defun geeknote-find-in-notebook (keyword)
-  "Search for a note with the given keyword.
-
-    KEYWORD the keyword to search the notes with."
-  (interactive "skeyword")
-  (let ((notebook (geeknote-helm-search-notebooks))
-	)
-    (geeknote--find-with-args
-     (format 
-      (concat geeknote-command
-	      (concat " find --search %s --count 10000 --content-search --notebook %s"))
-      (shell-quote-argument keyword)
-      (shell-quote-argument notebook))
-     keyword)
-    
-    ))
-
-(defun geeknote-find-by-tag ()
-  "Search for a note with the given tag.
-
-    KEYWORD the keyword to search the notes with."
-  (interactive)
-  (let ((keyword "") 			; hack , `geeknote--find-with-args' requires a query
-	(tag (geeknote-helm-search-tags))
-	)
-    (geeknote--find-with-args
-     (format 
-      (concat geeknote-command
-	      (concat " find --search %s --count 10000 --content-search --tag %s"))
-      (shell-quote-argument keyword)
-      (shell-quote-argument tag))
-     keyword)))
-
-
-(defun geeknote-find-in-notebook-limit (keyword num-results)
-  "Search for a note with the given keyword.
-
-    KEYWORD the keyword to search the notes with."
-  (interactive "skeyword\nsnumber of results")
-  (let ((notebook (geeknote-helm-search-notebooks))
-	)
-    (geeknote--find-with-args
-     (format 
-      (concat geeknote-command
-	      (concat " find --search %s --count " num-results  " --content-search --notebook %s"))
-      (shell-quote-argument keyword)
-      (shell-quote-argument notebook))
-     keyword)))
-
-
-
-(defun geeknote-find-in-notebook-20 (keyword)
-  "Search for a note with the given keyword.
-
-    KEYWORD the keyword to search the notes with."
-  (interactive "sKeyword: ")
-  (let ((notebook (geeknote-helm-search-notebooks))
-	)
-    (geeknote--find-with-args
-     (format 
-      (concat geeknote-command
-	      " find --search %s --count 20 --content-search --notebook %s")
-      (shell-quote-argument keyword)
-      (shell-quote-argument notebook))
-     keyword)))
-
-
-
-
-(defun geeknote-find-in-notebook-orig (notebook keyword)
-  "Search for a note with the given keyword.
-
-    KEYWORD the keyword to search the notes with."
-  (interactive "sNotebook: \nsKeyword: ")
-  (geeknote--find-with-args
-   (format 
-    (concat geeknote-command
-	    " find --search %s --count 20 --content-search --notebooks %s")
-    (shell-quote-argument keyword)
-    (shell-quote-argument notebook))
-   keyword))
-
-(defun geeknote--find-with-notebook (notebook)
-  (let* ((m "Search notebook '%s' with: ")
-	 (p (format m notebook))
-	 (keyword (read-from-minibuffer p)))
-    (geeknote--find-with-args
-     (format 
-      (concat geeknote-command
-	      " find --search %s --count 20 --content-search --notebooks %s")
-      (shell-quote-argument keyword)
-      (shell-quote-argument notebook))
-     keyword)))
-
-(defun geeknote-find-tags (tags)
-  "Search for a note with the given keyword.
-
-    TAGS the tags to search the notes with."
-  (interactive "stags: ")
-  (geeknote--find-with-args
-   (format 
-    (concat geeknote-command
-	    " find --tags %s --count 20")
-    (shell-quote-argument tags))
-   tags))
-
-(defun geeknote--find-with-args (command keyword)
-  "Search for a note with the given arg string.
-
-    COMMAND basically the full geeknote command to exec.
-    KEYWORD is used for display and buffer title only."
-  (let* ((notes (shell-command-to-string command))
-	 (lines (split-string notes "\n"))
-	 (buf-name (format "*Geeknote Find: %s*" keyword)))
-    (with-current-buffer (get-buffer-create buf-name)
-      (display-buffer buf-name)
-      (read-only-mode 0)
-      (erase-buffer)
-      (dotimes (i 2)
-	(insert (concat (car lines) "\n"))
-	(setq lines (cdr lines)))
-      (while lines
-	(let ((l (car lines)))
-	  (insert-button l
-			 'follow-link t
-			 'help-echo "Edit this note."
-			 'action (lambda (x)
-				   (geeknote-edit
-				    (car (split-string (button-get x 'name) " : "))))
-			 'name l)
-	  (insert "\n"))
-	(setq lines (cdr lines)))
-      (read-only-mode t)
-      (geeknote-mode))
-    (other-window 1)))
-
-    ;;;###autoload
-(defun geeknote-tag-list ()
-  "Show the list of existing tags in your Evernote."
-  (interactive)
-  (let* ((tags (shell-command-to-string
-		(format geeknote--expect-script "tag-list")))
-	 (lines (split-string tags "\n"))
-	 (buf-name "*Geeknote Tag List*"))
-    (with-current-buffer (get-buffer-create buf-name)
-      (display-buffer buf-name)
-      (read-only-mode 0)
-      (erase-buffer)
-      (setq lines (cdr lines))
-      (insert (replace-regexp-in-string
-	       "\^M" ""
-	       (concat "Total found: "
-		       (cadr (split-string (car lines) "Total found: "))
-		       "\n")))
-      (setq lines (cdr lines))
-      (while lines
-	(let ((l 
-	       (geeknote--chomp-end (replace-regexp-in-string
-				     "\^M" ""
-				     (replace-regexp-in-string "^.*\^M\s+\^M" ""
-							       (car lines))))))
-	  (unless (zerop (length (geeknote--chomp l)))
-	    (insert-button l
-			   'follow-link t
-			   'help-echo "Find notes with this tag."
-			   'action (lambda (x)
-				     (geeknote-find-tags
-				      (cadr (split-string (button-get x 'name) " : "))))
-			   'name l)
-	    (insert "\n")))
-	(setq lines (cdr lines)))
-      (read-only-mode t)
-      (geeknote-mode))
-    (other-window 1)))
-
-    ;;;###autoload
-(defun geeknote-notebook-list ()
-  "Show the list of existing notebooks in your Evernote."
-  (interactive)
-  (let* ((books (shell-command-to-string
-		 (format geeknote--expect-script "notebook-list")))
-	 (lines (split-string books "\n")))
-    (with-current-buffer (get-buffer-create "*Geeknote Notebook List*")
-      (display-buffer "*Geeknote Notebook List*")
-      (read-only-mode 0)
-      (erase-buffer)
-      (setq lines (cdr lines))
-      (insert (replace-regexp-in-string
-	       "\^M" ""
-	       (concat "Total found: "
-		       (cadr (split-string (car lines) "Total found: "))
-		       "\n")))
-      (setq lines (cdr lines))
-      (while lines
-	(let ((l 
-	       (geeknote--chomp-end (replace-regexp-in-string
-				     "\^M" ""
-				     (replace-regexp-in-string "^.*\^M\s+\^M" ""
-							       (car lines))))))
-	  (unless (zerop (length (geeknote--chomp l)))
-	    (insert-button l
-			   'follow-link t
-			   'help-echo "Search in this notebook."
-			   'action (lambda (x)
-				     (geeknote--find-with-notebook
-				      (cadr (split-string (button-get x 'name) " : "))))
-			   'name l)
-	    (insert "\n")))          
-	(setq lines (cdr lines)))
-      (read-only-mode t)
-      (geeknote-mode))
-    (other-window 1)))
-
-    ;;;###autoload
-(defun geeknote--notebook-edit-with-oldtitle (oldtitle)
-  "Rename an existing notebook with a target.
-
-    TITLE the title of the notebook to rename."
-  (let* ((m "Rename notebook '%s' to: ")
-	 (p (format m oldtitle))
-	 (newtitle (read-from-minibuffer p)))
-    (message (format "Renaming notebook: %s to %s." oldtitle newtitle))
-    (geeknote-notebook-edit oldtitle newtitle)))
-
-    ;;;###autoload
-(defun geeknote-notebook-edit (oldtitle newtitle)
-  "Rename an existing notebook.
-
-    TITLE the title of the notebook to rename."
-  (interactive "sRename existing notebook: \nsTo new notebook name: ")
-  (message (format "Renaming notebook: %s to %s." oldtitle newtitle))
-  (message (shell-command-to-string
-	    (format (concat geeknote-command
-			    " notebook-edit --notebook %s --title %s")
-		    (shell-quote-argument oldtitle)
-		    (shell-quote-argument newtitle)))))
-
-    ;;;###autoload
-(defun geeknote-user ()
-  "Show information about active user."
-  (interactive)
-  (with-output-to-temp-buffer "*Geeknote User Info*"
-    (princ (shell-command-to-string
-	    (format (concat geeknote-command " user")))))
-  (other-window 1))
-
-    ;;;###autoload
-(defun geeknote-move (note notebook)
-  "Move a NOTE to a different NOTEBOOK.  If the provided NOTEBOOK is
-    non-existent, it will be created.
-
-    NOTE the title of the note to move.
-    NOTEBOOK the title of the notebook where NOTE should be moved."
-  (interactive "sName: \nsMove note %s to notebook: ")
-  (message (format "Moving note %s to notebook %s..." note notebook))
-  (async-shell-command
-   (format (concat geeknote-command " edit --note %s --notebook %s")
-	   (shell-quote-argument note)
-	   (shell-quote-argument notebook))))
-
-(defun geeknote-refresh-tags ()
-  (interactive)
-  (setq geeknote-tags (split-string
-			       (geeknote--chomp
-				(shell-command-to-string
-				 "geeknote tag-list | awk '{print $3}'"))
-			       "\n")))
-
-(defun geeknote-refresh-notebooks ()
-  (interactive)
-  (setq geeknote-notebooks (split-string
-				    (geeknote--chomp
-				     (shell-command-to-string
-				      "geeknote notebook-list | perl -pe 's/^Found.*$//g' | perl -lane 'splice @F,0,2;print \"@F\"' | sed '/^$/d'"))
-				    "\n")))
-
-
-(defun geeknote--parse-title (title)
-  "Rerieve the title from the provided string. Filters out @notebooks and #tags.
-
-    TITLE is the input given when asked for a new note title."
-  (let ((wordlist (split-string title)))
-    (mapconcat (lambda (s) s)
-	       (delq nil
-		     (mapcar (lambda (str)
-			       (cond
-				((string-prefix-p "@" str) nil)
-				((string-prefix-p "#" str) nil)
-				(t str)))
-			     wordlist))
-	       " ")))
-
-(defun geeknote--parse-notebook (title)
-  "Rerieve the @notebook from the provided string. Returns nil if none.
-
-    TITLE is the input given when asked for a new note title."
-  (let ((wordlist (split-string title)))
-    (elt
-     (delq nil
-	   (mapcar (lambda (str)
-		     (cond
-		      ((string-prefix-p "@" str) (substring str 1))
-		      (t nil)))
-		   wordlist))
-     0)))
-
-(defun geeknote--parse-tags (title)
-  "Rerieve the #tags from the provided string. Returns nil if none.
-
-    TITLE is the input given when asked for a new note title."
-  (let ((wordlist (split-string title)))
-    (mapconcat (lambda (s) s)
-	       (delq nil
-		     (mapcar (lambda (str)
-			       (cond
-				((string-prefix-p "#" str) (substring str 1))
-				(t nil)))
-			     wordlist))
-	       ", ")))
-
-(defun geeknote--chomp-end (str)
-  "Chomp tailing whitespace from STR."
-  (replace-regexp-in-string (rx (* (any " \t\n")) eos)
-			    ""
-			    str))
+     (defun geeknote-create-orig (title &optional tag)
+       "Create a new note with the given title.
+
+     TITLE the title of the new note to be created."
+       (interactive "sTitle: \nsTag:")
+       (message (format "geeknote creating note: %s" title))
+       (let ((note-title (geeknote--parse-title title))
+             (note-notebook (geeknote-helm-search-notebooks))
+             (note-tag (if (string= "" tag)
+                           geeknote-default-tag
+                         tag)))
+         (async-shell-command
+          (format (concat geeknote-command " create --content WRITE --title %s "
+                          (when note-notebook " --notebook %s")
+                          (cond ((not (string= "" note-tag))
+                                 " --tag %s"))
+                          )
+                  (shell-quote-argument note-title)
+                  (shell-quote-argument (or note-notebook ""))
+                  note-tag
+                  
+                  )
+          (concat "*Geeknote* - creating note in - " note-notebook))))
+
+     (defun geeknote-create-with-tag (title)
+       "Create a new note with the given title.
+
+     TITLE the title of the new note to be created."
+       (interactive "sTitle: ")
+       (message (format "geeknote creating note: %s" title))
+       (let ((note-title (geeknote--parse-title title))
+             (tag (completing-read "tag: " geeknote-tags))
+             (note-notebook (completing-read "notebook" geeknote-notebooks)))
+         (async-shell-command
+          (format (concat geeknote-command " create --content WRITE --title %s "
+                          (when note-notebook " --notebook %s")
+                          (cond ((not (string= "" tag))
+                                 " --tag %s"))
+                          )
+                  (shell-quote-argument note-title)
+                  (shell-quote-argument (or note-notebook ""))
+                  (shell-quote-argument tag)
+                  
+                  )
+          (concat "*Geeknote* - creating note in - " note-notebook))))
+
+     (defun geeknote-create-tag-refresh (title)
+       "Create a new note with the given title.
+
+     TITLE the title of the new note to be created."
+       (interactive "sTitle: ")
+       (message (format "geeknote creating note: %s" title))
+       (let ((note-title (geeknote--parse-title title))
+             (tag (completing-read "tag: " geeknote-tags))
+             (note-notebook (completing-read "notebook" geeknote-notebooks)))
+         (async-shell-command
+          (format (concat geeknote-command " create --content WRITE --title %s "
+                          (when note-notebook " --notebook %s")
+                          (cond ((not (string= "" tag))
+                                 " --tag %s"))
+                          )
+                  (shell-quote-argument note-title)
+                  (shell-quote-argument (or note-notebook ""))
+                  (shell-quote-argument tag)
+                  
+                  )
+          (concat "*Geeknote* - creating note in - " note-notebook))))
+
+
+
+         ;;;###autoload
+     (defun geeknote-create-venv (title)
+       "Create a new note with the given title.
+
+         TITLE the title of the new note to be created."
+       (interactive "sTitle: ")
+       (message (format "geeknote creating note: %s" title))
+       (let ((current venv-current-name))
+         (venv-workon geeknote-venv)
+         
+         (let ((note-title (geeknote--parse-title title))
+               (note-notebook (geeknote-helm-search-notebooks)))
+           (async-shell-command
+            (format (concat geeknote-command " create --content WRITE --title %s "
+                            (when note-notebook " --notebook %s"))
+                    (shell-quote-argument note-title)
+                    (shell-quote-argument (or note-notebook ""))))
+           (venv-workon current))))
+
+
+     (defun geeknote-switch-virtualenv-and-create (title)
+       "Create a new note with the given title.
+
+         TITLE the title of the new note to be created."
+       (interactive "sTitle: ")
+       (venv-workon "geeknote")
+       (message (format "geeknote creating note: %s" title))
+       (let ((note-title (geeknote--parse-title title))
+             (note-notebook (geeknote-helm-search-notebooks)))
+         (async-shell-command
+          (format (concat geeknote-command " create --content WRITE --title %s "
+                          (when note-notebook " --notebook %s"))
+                  (shell-quote-argument note-title)
+                  (shell-quote-argument (or note-notebook ""))))))
+
+         ;;;###autoload
+     (defun geeknote-create-notebook (title stack)
+       "Create a new note with the given title.
+
+         TITLE the title of the new note to be created."
+       (interactive "sName: \nsStack: ")
+       (message (format "geeknote creating notebook: %s" title))
+       (async-shell-command
+        (format (concat geeknote-command " notebook-create --title %s "
+                        (when stack " --stack %s"))
+                (shell-quote-argument title)
+                (shell-quote-argument stack))))
+
+     (defun geeknote-create-no-helm (title)
+       "Create a new note with the given title.
+
+         TITLE the title of the new note to be created."
+       (interactive "sName: ")
+       (message (format "geeknote creating note: %s" title))
+       (let ((note-title (geeknote--parse-title title))
+             (note-tags (geeknote--parse-tags title))
+             (note-notebook (geeknote--parse-notebook title)))
+         (async-shell-command
+          (format (concat geeknote-command " create --content WRITE --title %s "
+                          (when note-notebook " --notebook %s"))
+                  (shell-quote-argument note-title)
+                  (shell-quote-argument (or note-tags ""))
+                  (shell-quote-argument (or note-notebook ""))))))
+
+
+     (defun geeknote-create-old (title)
+       "Create a new note with the given title.
+
+         TITLE the title of the new note to be created."
+       (interactive "sName: ")
+       (message (format "geeknote creating note: %s" title))
+       (let ((note-title (geeknote--parse-title title))
+             (note-tags (geeknote--parse-tags title))
+             (note-notebook (geeknote--parse-notebook title)))
+         (async-shell-command
+          (format (concat geeknote-command " create --content WRITE --title %s --tags %s"
+                          (when note-notebook " --notebook %s"))
+                  (shell-quote-argument note-title)
+                  (shell-quote-argument (or note-tags ""))
+                  (shell-quote-argument (or note-notebook ""))))))
+
+         ;;;###autoload
+     (defun geeknote-show (title)
+       "Open an existing note.
+
+         TITLE the title of the note to show."
+       (interactive "sName: ")
+       (message (format "geeknote showing note: %s" title))
+       (let* ((note (shell-command-to-string
+                     (format (concat geeknote-command " show %s")
+                             (shell-quote-argument title))))
+              (lines (split-string note "\n"))
+              (name (cadr lines))
+              (buf-name (format "*Geeknote: %s*" name)))
+         (with-current-buffer (get-buffer-create buf-name)
+           (display-buffer buf-name)      
+           (read-only-mode 0)
+           (erase-buffer)
+           (insert note)
+           (read-only-mode t)
+           (markdown-mode))
+         (other-window 1)))
+
+         ;;;###autoload
+     (defun geeknote-edit-by-notebook (title)
+       "Open up an existing note for editing.
+
+         TITLE the title of the note to edit."
+       (interactive "sTitle: ")
+       (let ((note-notebook (geeknote-helm-search-notebooks-cached)))
+           (message (format "Editing note: %s" title))
+           (async-shell-command
+            (format (concat "geeknote edit --note %s" " --notebook " note-notebook " --rawmd --content WRITE")
+                    (shell-quote-argument title)))
+           )
+
+     )
+
+
+
+         ;;;###autoload
+     (defun geeknote-edit (title)
+       "Open up an existing note for editing.
+
+         TITLE the title of the note to edit."
+       (interactive "sName: ")
+       (message (format "Editing note: %s" title))
+       (async-shell-command
+        (format (concat geeknote-command " edit --note %s")
+                (shell-quote-argument title))))
+
+
+         ;;;###autoload
+     (defun geeknote-remove (title)
+       "Delete an existing note.
+
+         TITLE the title of the note to delete."
+       (interactive "sName: ")
+       (message (format "geeknote deleting note: %s" title))
+       (message (concat "geeknote: "
+                        (shell-command-to-string
+                         (format (concat geeknote-command
+                                         " remove --note %s --force")
+                                 (shell-quote-argument title))))))
+
+         ;;;###autoload
+     (defun geeknote-find (keyword)
+       "Search for a note with the given keyword.
+
+         KEYWORD the keyword to search the notes with."
+       (interactive "skeyword: ")
+       (geeknote--find-with-args
+        (format 
+         (concat geeknote-command
+                 " find --search %s --count 20 --content-search")
+         (shell-quote-argument keyword))
+        keyword))
+
+         ;;;###autoload
+     (defun geeknote-helm-search-notebooks-cached ()
+       "Generate a helm list of notebooks, and return the selected one"
+       (interactive)
+       (let ((notebook (completing-read "notebook" geeknote-notebooks)))
+         notebook))
+
+
+         ;;;###autoload
+     (defun geeknote-helm-search-notebooks ()
+       "Generate a helm list of notebooks, and return the selected one"
+       (interactive)
+       (let ((notebook (completing-read "notebook"
+                                        (split-string
+                                         (geeknote--chomp
+                                          (shell-command-to-string
+                                           "geeknote notebook-list | perl -pe 's/^Found.*$//g' | perl -lane 'splice @F,0,2;print \"@F\"' | sed '/^$/d'"))
+                                         "\n"))))
+             
+         notebook))
+
+     (defun geeknote-helm-search-tags ()
+       "Generate a helm list of notebooks, and return the selected one"
+       (interactive)
+       (let ((tag (completing-read "tag: "
+                                   (split-string
+                                    (geeknote--chomp
+                                     (shell-command-to-string
+                                      "geeknote tag-list | awk '{print $3}'"))
+                                    "\n"))))
+             
+         tag))
+
+     (defun geeknote-helm-search-tags-cached ()
+       "Generate a helm list of notebooks, and return the selected one"
+       (interactive)
+       (let ((notebook (completing-read "tag: " geeknote-notebooks)))
+         notebook))
+
+
+
+     (defun geeknote-find-in-notebook (keyword)
+       "Search for a note with the given keyword.
+
+         KEYWORD the keyword to search the notes with."
+       (interactive "skeyword")
+       (let ((notebook (geeknote-helm-search-notebooks))
+             )
+         (geeknote--find-with-args
+          (format 
+           (concat geeknote-command
+                   (concat " find --search %s --count 10000 --content-search --notebook %s"))
+           (shell-quote-argument keyword)
+           (shell-quote-argument notebook))
+          keyword)
+         
+         ))
+
+     (defun geeknote-find-by-tag ()
+       "Search for a note with the given tag.
+
+         KEYWORD the keyword to search the notes with."
+       (interactive)
+       (let ((keyword "")                    ; hack , `geeknote--find-with-args' requires a query
+             (tag (geeknote-helm-search-tags))
+             )
+         (geeknote--find-with-args
+          (format 
+           (concat geeknote-command
+                   (concat " find --search %s --count 10000 --content-search --tag %s"))
+           (shell-quote-argument keyword)
+           (shell-quote-argument tag))
+          keyword)))
+
+
+     (defun geeknote-find-in-notebook-limit (keyword num-results)
+       "Search for a note with the given keyword.
+
+         KEYWORD the keyword to search the notes with."
+       (interactive "skeyword\nsnumber of results")
+       (let ((notebook (geeknote-helm-search-notebooks))
+             )
+         (geeknote--find-with-args
+          (format 
+           (concat geeknote-command
+                   (concat " find --search %s --count " num-results  " --content-search --notebook %s"))
+           (shell-quote-argument keyword)
+           (shell-quote-argument notebook))
+          keyword)))
+
+
+
+     (defun geeknote-find-in-notebook-20 (keyword)
+       "Search for a note with the given keyword.
+
+         KEYWORD the keyword to search the notes with."
+       (interactive "sKeyword: ")
+       (let ((notebook (geeknote-helm-search-notebooks))
+             )
+         (geeknote--find-with-args
+          (format 
+           (concat geeknote-command
+                   " find --search %s --count 20 --content-search --notebook %s")
+           (shell-quote-argument keyword)
+           (shell-quote-argument notebook))
+          keyword)))
+
+
+
+
+     (defun geeknote-find-in-notebook-orig (notebook keyword)
+       "Search for a note with the given keyword.
+
+         KEYWORD the keyword to search the notes with."
+       (interactive "sNotebook: \nsKeyword: ")
+       (geeknote--find-with-args
+        (format 
+         (concat geeknote-command
+                 " find --search %s --count 20 --content-search --notebooks %s")
+         (shell-quote-argument keyword)
+         (shell-quote-argument notebook))
+        keyword))
+
+     (defun geeknote--find-with-notebook (notebook)
+       (let* ((m "Search notebook '%s' with: ")
+              (p (format m notebook))
+              (keyword (read-from-minibuffer p)))
+         (geeknote--find-with-args
+          (format 
+           (concat geeknote-command
+                   " find --search %s --count 20 --content-search --notebooks %s")
+           (shell-quote-argument keyword)
+           (shell-quote-argument notebook))
+          keyword)))
+
+     (defun geeknote-find-tags (tags)
+       "Search for a note with the given keyword.
+
+         TAGS the tags to search the notes with."
+       (interactive "stags: ")
+       (geeknote--find-with-args
+        (format 
+         (concat geeknote-command
+                 " find --tags %s --count 20")
+         (shell-quote-argument tags))
+        tags))
+
+     (defun geeknote--find-with-args (command keyword)
+       "Search for a note with the given arg string.
+
+         COMMAND basically the full geeknote command to exec.
+         KEYWORD is used for display and buffer title only."
+       (let* ((notes (shell-command-to-string command))
+              (lines (split-string notes "\n"))
+              (buf-name (format "*Geeknote Find: %s*" keyword)))
+         (with-current-buffer (get-buffer-create buf-name)
+           (display-buffer buf-name)
+           (read-only-mode 0)
+           (erase-buffer)
+           (dotimes (i 2)
+             (insert (concat (car lines) "\n"))
+             (setq lines (cdr lines)))
+           (while lines
+             (let ((l (car lines)))
+               (insert-button l
+                              'follow-link t
+                              'help-echo "Edit this note."
+                              'action (lambda (x)
+                                        (geeknote-edit
+                                         (car (split-string (button-get x 'name) " : "))))
+                              'name l)
+               (insert "\n"))
+             (setq lines (cdr lines)))
+           (read-only-mode t)
+           (geeknote-mode))
+         (other-window 1)))
+
+         ;;;###autoload
+     (defun geeknote-tag-list ()
+       "Show the list of existing tags in your Evernote."
+       (interactive)
+       (let* ((tags (shell-command-to-string
+                     (format geeknote--expect-script "tag-list")))
+              (lines (split-string tags "\n"))
+              (buf-name "*Geeknote Tag List*"))
+         (with-current-buffer (get-buffer-create buf-name)
+           (display-buffer buf-name)
+           (read-only-mode 0)
+           (erase-buffer)
+           (setq lines (cdr lines))
+           (insert (replace-regexp-in-string
+                    "\^M" ""
+                    (concat "Total found: "
+                            (cadr (split-string (car lines) "Total found: "))
+                            "\n")))
+           (setq lines (cdr lines))
+           (while lines
+             (let ((l 
+                    (geeknote--chomp-end (replace-regexp-in-string
+                                          "\^M" ""
+                                          (replace-regexp-in-string "^.*\^M\s+\^M" ""
+                                                                    (car lines))))))
+               (unless (zerop (length (geeknote--chomp l)))
+                 (insert-button l
+                                'follow-link t
+                                'help-echo "Find notes with this tag."
+                                'action (lambda (x)
+                                          (geeknote-find-tags
+                                           (cadr (split-string (button-get x 'name) " : "))))
+                                'name l)
+                 (insert "\n")))
+             (setq lines (cdr lines)))
+           (read-only-mode t)
+           (geeknote-mode))
+         (other-window 1)))
+
+         ;;;###autoload
+     (defun geeknote-notebook-list ()
+       "Show the list of existing notebooks in your Evernote."
+       (interactive)
+       (let* ((books (shell-command-to-string
+                      (format geeknote--expect-script "notebook-list")))
+              (lines (split-string books "\n")))
+         (with-current-buffer (get-buffer-create "*Geeknote Notebook List*")
+           (display-buffer "*Geeknote Notebook List*")
+           (read-only-mode 0)
+           (erase-buffer)
+           (setq lines (cdr lines))
+           (insert (replace-regexp-in-string
+                    "\^M" ""
+                    (concat "Total found: "
+                            (cadr (split-string (car lines) "Total found: "))
+                            "\n")))
+           (setq lines (cdr lines))
+           (while lines
+             (let ((l 
+                    (geeknote--chomp-end (replace-regexp-in-string
+                                          "\^M" ""
+                                          (replace-regexp-in-string "^.*\^M\s+\^M" ""
+                                                                    (car lines))))))
+               (unless (zerop (length (geeknote--chomp l)))
+                 (insert-button l
+                                'follow-link t
+                                'help-echo "Search in this notebook."
+                                'action (lambda (x)
+                                          (geeknote--find-with-notebook
+                                           (cadr (split-string (button-get x 'name) " : "))))
+                                'name l)
+                 (insert "\n")))          
+             (setq lines (cdr lines)))
+           (read-only-mode t)
+           (geeknote-mode))
+         (other-window 1)))
+
+         ;;;###autoload
+     (defun geeknote--notebook-edit-with-oldtitle (oldtitle)
+       "Rename an existing notebook with a target.
+
+         TITLE the title of the notebook to rename."
+       (let* ((m "Rename notebook '%s' to: ")
+              (p (format m oldtitle))
+              (newtitle (read-from-minibuffer p)))
+         (message (format "Renaming notebook: %s to %s." oldtitle newtitle))
+         (geeknote-notebook-edit oldtitle newtitle)))
+
+         ;;;###autoload
+     (defun geeknote-notebook-edit (oldtitle newtitle)
+       "Rename an existing notebook.
+
+         TITLE the title of the notebook to rename."
+       (interactive "sRename existing notebook: \nsTo new notebook name: ")
+       (message (format "Renaming notebook: %s to %s." oldtitle newtitle))
+       (message (shell-command-to-string
+                 (format (concat geeknote-command
+                                 " notebook-edit --notebook %s --title %s")
+                         (shell-quote-argument oldtitle)
+                         (shell-quote-argument newtitle)))))
+
+         ;;;###autoload
+     (defun geeknote-user ()
+       "Show information about active user."
+       (interactive)
+       (with-output-to-temp-buffer "*Geeknote User Info*"
+         (princ (shell-command-to-string
+                 (format (concat geeknote-command " user")))))
+       (other-window 1))
+
+         ;;;###autoload
+     (defun geeknote-move (note notebook)
+       "Move a NOTE to a different NOTEBOOK.  If the provided NOTEBOOK is
+         non-existent, it will be created.
+
+         NOTE the title of the note to move.
+         NOTEBOOK the title of the notebook where NOTE should be moved."
+       (interactive "sName: \nsMove note %s to notebook: ")
+       (message (format "Moving note %s to notebook %s..." note notebook))
+       (async-shell-command
+        (format (concat geeknote-command " edit --note %s --notebook %s")
+                (shell-quote-argument note)
+                (shell-quote-argument notebook))))
+
+     (defun geeknote-refresh-tags ()
+       (interactive)
+       (setq geeknote-tags (split-string
+                                    (geeknote--chomp
+                                     (shell-command-to-string
+                                      "geeknote tag-list | awk '{print $3}'"))
+                                    "\n")))
+
+     (defun geeknote-refresh-notebooks ()
+       (interactive)
+       (setq geeknote-notebooks (split-string
+                                         (geeknote--chomp
+                                          (shell-command-to-string
+                                           "geeknote notebook-list | perl -pe 's/^Found.*$//g' | perl -lane 'splice @F,0,2;print \"@F\"' | sed '/^$/d'"))
+                                         "\n")))
+
+
+     (defun geeknote--parse-title (title)
+       "Rerieve the title from the provided string. Filters out @notebooks and #tags.
+
+         TITLE is the input given when asked for a new note title."
+       (let ((wordlist (split-string title)))
+         (mapconcat (lambda (s) s)
+                    (delq nil
+                          (mapcar (lambda (str)
+                                    (cond
+                                     ((string-prefix-p "@" str) nil)
+                                     ((string-prefix-p "#" str) nil)
+                                     (t str)))
+                                  wordlist))
+                    " ")))
+
+     (defun geeknote--parse-notebook (title)
+       "Rerieve the @notebook from the provided string. Returns nil if none.
+
+         TITLE is the input given when asked for a new note title."
+       (let ((wordlist (split-string title)))
+         (elt
+          (delq nil
+                (mapcar (lambda (str)
+                          (cond
+                           ((string-prefix-p "@" str) (substring str 1))
+                           (t nil)))
+                        wordlist))
+          0)))
+
+     (defun geeknote--parse-tags (title)
+       "Rerieve the #tags from the provided string. Returns nil if none.
+
+         TITLE is the input given when asked for a new note title."
+       (let ((wordlist (split-string title)))
+         (mapconcat (lambda (s) s)
+                    (delq nil
+                          (mapcar (lambda (str)
+                                    (cond
+                                     ((string-prefix-p "#" str) (substring str 1))
+                                     (t nil)))
+                                  wordlist))
+                    ", ")))
+
+     (defun geeknote--chomp-end (str)
+       "Chomp tailing whitespace from STR."
+       (replace-regexp-in-string (rx (* (any " \t\n")) eos)
+                                 ""
+                                 str))
    #+END_SRC
 ** initialize caches
    #+BEGIN_SRC elisp :tangle geeknote.el
