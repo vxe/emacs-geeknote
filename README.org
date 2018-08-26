@@ -2,7 +2,8 @@
 #+TITLE: geeknote.el
 #+STARTUP: indent
 #+OPTIONS: toc:nil
-
+* UNMAINTAINED
+I'v switched to this thing: http://www.bear-writer.com
 Some additions to the [[https://github.com/avendael/emacs-geeknote][to the excellent original by avendael]]
 ** Overview :TOC:
 - [[#installation][Installation]]
